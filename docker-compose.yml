@@ -1,0 +1,42 @@
+version: "3"
+
+services:
+  frontend:
+    build: ./react-query-app
+    ports:
+      - "8080:3000"
+    environment:
+      REACT_APP_URL: http://localhost:4000
+    restart: always
+  backend:
+    build: ./nodejs-express-app
+    ports:
+      - "4000:4000"
+    environment:
+      PORT: 4000
+      DB_URL: mongodb://root:example@mongo:27017/photos
+    restart: always
+    depends_on:
+      - mongo
+  mongo:
+    image: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_DATABASE: photos
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+    volumes:
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+  mongo-express:
+    image: mongo-express
+    restart: always
+    ports:
+      - 8081:8081
+    environment:
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: admin
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      ME_CONFIG_MONGODB_ADMINPASSWORD: example
+      ME_CONFIG_MONGODB_URL: mongodb://root:example@mongo:27017/
+    depends_on:
+      - mongo
